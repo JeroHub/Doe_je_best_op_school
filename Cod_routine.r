@@ -1,7 +1,3 @@
-# Set working directory
-setwd("C:/Users/Jeroen Hubert/Dropbox/RAT files 2017/")
-#setwd("C:/Users/Emmy/Dropbox/RAT files 2017/")
-
 require(toal)
 
 # Read dataset, standard fs (sampling rate) of HTI system is: 12000/s (12 bit)
