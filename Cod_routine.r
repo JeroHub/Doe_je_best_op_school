@@ -1,3 +1,7 @@
+# Set working directory
+setwd("C:/Users/Jeroen Hubert/Dropbox/RAT files 2017/")
+#setwd("C:/Users/Emmy/Dropbox/RAT files 2017/")
+
 require(toal)
 
 # Read dataset, standard fs (sampling rate) of HTI system is: 12000/s (12 bit)
@@ -5,12 +9,13 @@ dataset_HTI <- read.HTI.RAT("AT17S013410100.RAT", fs = 12000)
 
 # Only load hydrophone 1, and all detections within first minute
 start <- min(dataset_HTI$seconds)
-length <- 50
+length <- 60
 segment <- 1
 yaps.output <- NULL
 
 ## START LOOP
-for (start in min(dataset_HTI$seconds):max(dataset_HTI$seconds)) {
+#for (start in min(dataset_HTI$seconds):max(dataset_HTI$seconds)) {
+for (segment in 1:5){
 dataset <- subset(dataset_HTI, seconds <= start+length & seconds >= start)
 dataset.H1 <- subset(dataset, Hydrophone == 1)
 
@@ -109,6 +114,7 @@ tic();estimates.yaps.p <- yaps.pelagic(toa = toa.real,
                                        max.iterations = 5000, params = params); toc();
 
 yaps.output.temp <- data.frame(estimates.yaps.p$XYZ)
+yaps.output.temp$DateTime <- dataset.YAPS_input$DateTime
 yaps.output.temp$segment <- segment
 plot(yaps.output.temp$X1, yaps.output.temp$X2, type="l", xlim=c(0,12.5), ylim=c(0,12.5))
 plot(yaps.output.temp$X1, yaps.output.temp$X3, type="l", xlim=c(0,12.5), ylim=c(0,5))
@@ -133,5 +139,5 @@ plot(yaps.output$X1, yaps.output$X3, type="l")
 plot(yaps.output$X1, yaps.output$X2, type="l", xlim=c(0,12.5), ylim=c(0,12.5))
 plot(yaps.output$X1, yaps.output$X3, type="l", xlim=c(0,12.5), ylim=c(0,5))
 
-#plot(yaps.output$X1[yaps.output$segment == 8], yaps.output$X2[yaps.output$segment == 8], type="l", xlim=c(0,12.5), ylim=c(0,12.5))
+#plot(yaps.output$X1[yaps.output$segment == 3], yaps.output$X2[yaps.output$segment == 3], type="l", xlim=c(0,12.5), ylim=c(0,12.5))
 
