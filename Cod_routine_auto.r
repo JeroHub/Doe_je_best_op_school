@@ -131,7 +131,7 @@ codAnalysis <- function(file, length = 120, segments = 0, c = 1500,
 			## Update starting values for next run
 			message('Updating starting parameter values')
 			#params <- estimates.yaps.p[4:9]
-			print(as.vector(estimates.yaps.p[4:9]))
+			print(as.data.frame(estimates.yaps.p[4:9]))
 			
 			yaps.output.temp <- data.frame(estimates.yaps.p$XYZ, estimates.yaps.p$top)
 			names(yaps.output.temp) <- c('x','y','z','top')
