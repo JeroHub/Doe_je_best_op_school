@@ -9,7 +9,7 @@
 #'
 #' @examples
 codAnalysis <- function(file, length = 120, segments = 0, c = 1500,
-												filterStrength = 0.1){
+												filterStrength = 0.1, z = 1.96, plot = T, tag.freq = NA){
 	require(toal)
 	
 	# file <- "AT17S013410100.RAT"
@@ -37,11 +37,11 @@ codAnalysis <- function(file, length = 120, segments = 0, c = 1500,
 	params <- list(
 		logSigma_bi = -12.3, #log transformed SD of pulse intervals
 		# logSigma_dl = rep(-10,length = nrow(hydro.pos)),		# Sigma for latency error
-		logSigma_dl = -7.59,		# Sigma for latency error
+		logSigma_dl = -8,		# Sigma for latency error
 		logSigma_toa = -15, # Time of arrival SD
-		logSigma_x = -1.54,
+		logSigma_x = -2,
 		logSigma_y = -2,
-		logSigma_z = -3.19)
+		logSigma_z = -3)
 	
 	# Initalize empty results dataframe
 	yaps.output <- data.frame()
@@ -54,21 +54,43 @@ codAnalysis <- function(file, length = 120, segments = 0, c = 1500,
 											seconds >=  + segStart &
 											seconds < segEnd)
 		dataset.H1 <- subset(dataset, Hydrophone == 1)
+		dataset.H2 <- subset(dataset, Hydrophone == 2)
+		dataset.H3 <- subset(dataset, Hydrophone == 3)
+		dataset.H4 <- subset(dataset, Hydrophone == 4)
 		
 		message('Segment: ', segment, ', Analysis Period: ',
 						round(segStart, digits = 1), '-',round(segEnd,digits = 1))
 		
 		## Find unique pulse rate intervals
-		pulseFrequencies <- TagFreq.detect(dataset.H1$seconds,n.tags = 1,plot = F,
-																			 frequencies = seq(0.98,1.02,0.00001), 
-																			 minGap = 0.0001)
-		message('Pulse Frequency: ',pulseFrequencies[1])
+		if(is.na(tag.freq)){
+			message('Finding tag frequency...')
+			tag.range <- c(0.98, 1.02)
+			pulseFrequencies <- mean(TagFreq.detect(dataset.H1$seconds,n.tags = 1,plot = F,
+																				 frequencies = seq(
+																				 	tag.range[1],tag.range[2],0.00001), 
+																				 minGap = 0.0001),
+															 TagFreq.detect(dataset.H2$seconds,n.tags = 1,plot = F,
+															 							 frequencies = seq(
+															 							 	tag.range[1],tag.range[2],0.00001), 
+															 							 minGap = 0.0001),
+															 TagFreq.detect(dataset.H3$seconds,n.tags = 1,plot = F,
+															 							 frequencies = seq(
+															 							 	tag.range[1],tag.range[2],0.00001), 
+															 							 minGap = 0.0001),
+															 TagFreq.detect(dataset.H4$seconds,n.tags = 1,plot = F,
+															 							 frequencies = seq(
+															 							 	tag.range[1],tag.range[2],0.00001), 
+															 							 minGap = 0.0001))
+		}else{
+			pulseFrequencies <- tag.freq
+		}
+		message('Pulse Frequency: ',pulseFrequencies)
 		dataset <- dataset[dataset$Hydrophone > 0, ]
 		hydro <- unique(dataset$Hydrophone)
 		
-		
 		## Filter out detections (based on tag pulse period)
 		# Initialize new dataframe for results
+		message('Filtering tags...')
 		dataset.tag1 <- data.frame()
 		for(i in hydro){
 			dataset.sub <- subset(dataset, subset = Hydrophone == i)
@@ -82,13 +104,41 @@ codAnalysis <- function(file, length = 120, segments = 0, c = 1500,
 		}
 		#print(head(dataset.tag1))
 		
-		
 		## Assign periods to tag detections
-		png(filename = 	paste0(proofName,'_Segment-',segment,'.png'),
+		png(filename = 	paste0(proofName,'_Raw_Segment-',segment,'.png'),
 				width = 920, height = 480)
 		dataset.periods <- TagFreq.label(data = dataset.tag1, 
 																		 sensitivity = filterStrength, plot = T)
 		dev.off()
+	
+		dataset.periods.clean <- TagFreq.clean(dataset.periods, z = z, plot = F)
+
+		png(filename = 	paste0(proofName,'_Clean_Segment-',segment,'.png'),
+				width = 920, height = 480)
+			if(plot == T){
+				require(ggplot2)
+				print(
+					ggplot(dataset.periods.clean) +
+						geom_path(aes(x = Seconds, y = rads, group = factor(period)),
+											alpha = 0.2) +
+						geom_path(aes(x = Seconds, y = rads,
+													group = factor(paste0(Hydrophone,Tag))),
+											data = subset(dataset.periods.clean, subset = remove == F)) +
+						geom_point(aes(x = Seconds, y = rads, fill = factor(Hydrophone),
+													 color = remove), pch = 21) +
+						theme_bw() + scale_fill_discrete(name = 'Hydrophone') +
+						ylab('Relative Detection Time (Radians per period)') +
+						xlab('Absolute Detection time (Seconds)') +
+						geom_hline(yintercept = c(pi + filterStrength/2,
+																			pi - filterStrength/2),
+											 linetype = 2) +
+						scale_color_manual(values= c(`TRUE` = 'red', `FALSE` = 'black'))
+				)
+			}
+		dev.off()
+		
+		## Remove cleaned points
+		dataset.periods <- subset(dataset.periods.clean, subset = remove == F)
 		
 		### Loop all periods, and save first detection per hydrophone
 		dataset.YAPS_input <- NULL
@@ -138,10 +188,11 @@ codAnalysis <- function(file, length = 120, segments = 0, c = 1500,
 			yaps.output.temp$DateTime <- (yaps.output.temp$top - start) +
 				as.POSIXct(attr(which = 'StartTime', x = dataset_HTI))
 			yaps.output.temp$segment <- segment
-			print(
-				plot(yaps.output.temp$X1,
-						 yaps.output.temp$X2,
-						 type="l", xlim=range(hydro.pos$x), ylim=range(hydro.pos$y)))
+			yaps.output.temp$H1.detections <- length(which(!is.na(toa$H1)))/length(toa$H1)
+			yaps.output.temp$H2.detections <- length(which(!is.na(toa$H2)))/length(toa$H2)
+			yaps.output.temp$H3.detections <- length(which(!is.na(toa$H3)))/length(toa$H3)
+			yaps.output.temp$H4.detections <- length(which(!is.na(toa$H4)))/length(toa$H4)
+			
 	
 			## Write to file after each section
 			### This will prevent data loss during long runs which have errors
