@@ -14,10 +14,14 @@ codAnalysis <- function(file, length = 120, segments = 0, c = 1500,
 	
 	# file <- "AT17S013410100.RAT"
 	
-	timestamp <- as.character(Sys.time())
-	outputName <- paste0('Processed_',file,'_', length,'_',segments,'_',timestamp,'.csv')
-	proofName <- paste0('Proofing_',file,'_', length,'_',segments,'_',timestamp)
+	file.name <- substr(file, 1, (nchar(file) - 4))
+	timestamp <- as.character(Sys.time(), format = '%y-%M-%d_%H:%M')
+	outputName <- paste0('R_',file.name,'_', length,'s_',timestamp,
+											 '_z',z,'_fs',filterStrength, '_',tag.freq,'hz.csv')
+	folderName <- paste0('P_',file.name,'_', length,'s_',timestamp)
 	
+	mkdirs(folderName)
+		
 	# Read dataset, standard fs (sampling rate) of HTI system is: 12000/s (12 bit)
 	dataset_HTI <- read.HTI.RAT(file, fs = 12000)
 	head(dataset_HTI)
@@ -105,7 +109,7 @@ codAnalysis <- function(file, length = 120, segments = 0, c = 1500,
 		#print(head(dataset.tag1))
 		
 		## Assign periods to tag detections
-		png(filename = 	paste0(proofName,'_Raw_Segment-',segment,'.png'),
+		png(filename = 	paste0(folderName,'/','Raw_s',segment,'.png'),
 				width = 920, height = 480)
 		dataset.periods <- TagFreq.label(data = dataset.tag1, 
 																		 sensitivity = filterStrength, plot = T)
@@ -113,7 +117,7 @@ codAnalysis <- function(file, length = 120, segments = 0, c = 1500,
 	
 		dataset.periods.clean <- TagFreq.clean(dataset.periods, z = z, plot = F)
 
-		png(filename = 	paste0(proofName,'_Clean_Segment-',segment,'.png'),
+		png(filename = 	paste0(folderName,'/','Clean_s',segment,'.png'),
 				width = 920, height = 480)
 			if(plot == T){
 				require(ggplot2)

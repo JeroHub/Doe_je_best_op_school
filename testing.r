@@ -6,10 +6,12 @@ zs <- c(`95` = 1.960, `99` = 2.567, `99.5` = 2.807)
 
 ## Analysis
 source('Cod_routine_auto.r')
-codAnalysis(file = 'AT17S013410100.RAT', length = 60, segments = 0, c = 1500, 
-						filterStrength = 0.1, z = zs[3], tag.freq = 1.00005)
+#codAnalysis(file = 'AT17S013410100.RAT', length = 60, segments = 0, c = 1500, 
+#						filterStrength = 0.1, z = zs[3], tag.freq = 1.00005)
+#codAnalysis(file = 'AT17S013410100.RAT', length = 120, segments = 0, c = 1500, 
+#						filterStrength = 0.1, z = zs[3], tag.freq = 1.00005)
 codAnalysis(file = 'AT17S013410100.RAT', length = 120, segments = 0, c = 1500, 
-						filterStrength = 0.1, z = zs[3], tag.freq = 1.00005)
+						filterStrength = 0.1, z = zs[2], tag.freq = 1.00005)
 
 ## Function for plotting results
 plotResults <- function(file, segments){
@@ -34,7 +36,7 @@ plotResults <- function(file, segments){
 			scale_color_gradientn(colors = rev(jet.colors(n = 8))))		
 }
 
-## 60 seconds
+## 60 seconds z = 99.5%
 plotResults(file = 'Processed_AT17S013410100.RAT_60_0_2018-03-20 02:50:41.csv',
 						segments = 1:10)
 plotResults(file = 'Processed_AT17S013410100.RAT_60_0_2018-03-20 02:50:41.csv',
@@ -45,9 +47,8 @@ plotResults(file = 'Processed_AT17S013410100.RAT_60_0_2018-03-20 02:50:41.csv',
 						segments = 1:60)
 
 
-## 120 seconds
+## 120 seconds: z = 99.5%
 plotResults(file = 'Processed_AT17S013410100.RAT_120_0_2018-03-20 03:45:06.csv',
 						segments = 1:15)
 plotResults(file = 'Processed_AT17S013410100.RAT_120_0_2018-03-20 03:45:06.csv',
 						segments = 1:30)
-
