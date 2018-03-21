@@ -52,31 +52,25 @@ plotResults(file = 'Processed_AT17S013410100.RAT_60_0_2018-03-20 02:50:41.csv',
 
 ## 120 seconds: z = 99.5%
 plotResults(file = 'Processed_AT17S013410100.RAT_120_0_2018-03-20 03:45:06.csv',
-						segments = 1:15)
-plotResults(file = 'Processed_AT17S013410100.RAT_120_0_2018-03-20 03:45:06.csv',
-						segments = 1:30)
-
-## 180 seconds
+						segments = NA)
 plotResults(file = 'R_AT17S013410100_120s_18-05-20_21:05_z2.567_fs0.1_1.00005hz.csv',
-						segments = 1:15)
-plotResults(file = 'Processed_AT17S013410100.RAT_120_0_2018-03-20 03:45:06.csv',
-						segments = 1:30)
+						segments = NA)
 
 
 ## 180 seconds
 plotResults(file = 'R_AT17S013410100_180s_18-09-20_21:09_z2.567_fs0.1_1.00005hz.csv',
-						segments = 1:15)
+						segments = NA)
 plotResults(file = 'R_AT17S013410100_180s_18-07-20_21:07_z2.807_fs0.1_1.00005hz.csv',
-						segments = 1:30)
+						segments = NA)
 
-## 180 seconds
+## 240 seconds
 plotResults(file = 'R_AT17S013410100_240s_18-09-20_22:09_z2.807_fs0.1_1.00005hz.csv',
-						segments = 1:15)
+						segments = NA)
 plotResults(file = 'R_AT17S013410100_240s_18-32-20_22:32_z2.567_fs0.1_1.00005hz.csv',
-						segments = 1:30)
+						segments = NA)
 
-## 180 seconds
+## 300 seconds
 plotResults(file = 'R_AT17S013410100_300s_18-02-20_23:02_z2.807_fs0.1_1.00005hz.csv',
-						segments = 1:15)
+						segments = NA)
 plotResults(file = 'R_AT17S013410100_300s_18-03-20_23:03_z2.567_fs0.1_1.00005hz.csv',
-						segments = 1:30)
+						segments = NA)
