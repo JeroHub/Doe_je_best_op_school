@@ -2,5 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
-.png
 *.png
+!/Testing/*.png
+

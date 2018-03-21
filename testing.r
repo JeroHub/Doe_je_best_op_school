@@ -10,11 +10,11 @@ source('Cod_routine_auto.r')
 #						filterStrength = 0.1, z = zs[3], tag.freq = 1.00005)
 #codAnalysis(file = 'AT17S013410100.RAT', length = 120, segments = 0, c = 1500, 
 #						filterStrength = 0.1, z = zs[3], tag.freq = 1.00005)
-codAnalysis(file = 'AT17S013410100.RAT', length = 120, segments = 0, c = 1500, 
-						filterStrength = 0.1, z = zs[2], tag.freq = 1.00005)
+#codAnalysis(file = 'AT17S013410100.RAT', length = 120, segments = 0, c = 1500, 
+#						filterStrength = 0.1, z = zs[2], tag.freq = 1.00005)
 
 ## Function for plotting results
-plotResults <- function(file, segments){
+plotResults <- function(file, segments = NA){
 	require(ggplot2)
 	
 	jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan","#7FFF7F",
@@ -22,6 +22,9 @@ plotResults <- function(file, segments){
 	plotting <- read.csv(file)
 	plotting$Detections <- apply(plotting[,7:10], 1, 'min')
 	head(plotting)
+	if(is.na(segments)){
+		segments = unique(plotting$segment)
+	}
 	plotting <- subset(plotting, subset = segment %in% segments)
 	idx <- which(diff(plotting$segment) > 0)
 	
@@ -51,4 +54,29 @@ plotResults(file = 'Processed_AT17S013410100.RAT_60_0_2018-03-20 02:50:41.csv',
 plotResults(file = 'Processed_AT17S013410100.RAT_120_0_2018-03-20 03:45:06.csv',
 						segments = 1:15)
 plotResults(file = 'Processed_AT17S013410100.RAT_120_0_2018-03-20 03:45:06.csv',
+						segments = 1:30)
+
+## 180 seconds
+plotResults(file = 'R_AT17S013410100_120s_18-05-20_21:05_z2.567_fs0.1_1.00005hz.csv',
+						segments = 1:15)
+plotResults(file = 'Processed_AT17S013410100.RAT_120_0_2018-03-20 03:45:06.csv',
+						segments = 1:30)
+
+
+## 180 seconds
+plotResults(file = 'R_AT17S013410100_180s_18-09-20_21:09_z2.567_fs0.1_1.00005hz.csv',
+						segments = 1:15)
+plotResults(file = 'R_AT17S013410100_180s_18-07-20_21:07_z2.807_fs0.1_1.00005hz.csv',
+						segments = 1:30)
+
+## 180 seconds
+plotResults(file = 'R_AT17S013410100_240s_18-09-20_22:09_z2.807_fs0.1_1.00005hz.csv',
+						segments = 1:15)
+plotResults(file = 'R_AT17S013410100_240s_18-32-20_22:32_z2.567_fs0.1_1.00005hz.csv',
+						segments = 1:30)
+
+## 180 seconds
+plotResults(file = 'R_AT17S013410100_300s_18-02-20_23:02_z2.807_fs0.1_1.00005hz.csv',
+						segments = 1:15)
+plotResults(file = 'R_AT17S013410100_300s_18-03-20_23:03_z2.567_fs0.1_1.00005hz.csv',
 						segments = 1:30)
