@@ -16,8 +16,8 @@ codAnalysis <- function(file, length = 120, segments = 0, c = 1500,
 	
 	file.name <- substr(file, 1, (nchar(file) - 4))
 	timestamp <- as.character(Sys.time(), format = '%y-%M-%d_%H:%M')
-	outputName <- paste0('R_',file.name,'_', length,'s_',timestamp,
-											 '_z',z,'_fs',filterStrength, '_',tag.freq,'hz.csv')
+	outputName <- paste0('R_',file.name,'_', length,'s_z',z,'_fs',filterStrength,
+											 '_',tag.freq,'hz_',timestamp,'.csv')
 	folderName <- paste0('P_',file.name,'_', length,'s_',timestamp)
 	
 	require(R.utils)	
