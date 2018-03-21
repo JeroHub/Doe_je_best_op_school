@@ -4,11 +4,12 @@
 #' @param file Name of RAT file to process
 #' @param length Time in seconds of each analysis segment.  Shorter segments allow for controling variable conditions over time, while longer sections will make it seasier to estimate the error distributions of the model.  Try to have at least 120 data points per segment.
 #' @param segments 0 will analyse until file end.  Otherwise, will analyse `segments` sections of `length` seconds.
+#' @param ol Absolute number of datapoints that overlap with two consecutive segments.
 #' @return
 #' @export
 #'
 #' @examples
-codAnalysis <- function(file, length = 120, segments = 0, c = 1500,
+codAnalysis <- function(file, length = 120, segments = 0, ol = 30, c = 1500,
 												filterStrength = 0.1, z = 1.96, plot = T, tag.freq = NA){
 	require(toal)
 	
@@ -26,6 +27,12 @@ codAnalysis <- function(file, length = 120, segments = 0, c = 1500,
 	# Read dataset, standard fs (sampling rate) of HTI system is: 12000/s (12 bit)
 	dataset_HTI <- read.HTI.RAT(file, fs = 12000)
 	head(dataset_HTI)
+	
+	# Check input for overlap variable
+	if (ol > (length/2)){
+	  ol <- floor(length/2)
+	  message('Warning: Entered overlap (ol) is to high, the maximum possible overlap will be used.')
+	}
 	
 	## Loop variables
 	start <- min(dataset_HTI$seconds)
@@ -55,16 +62,27 @@ codAnalysis <- function(file, length = 120, segments = 0, c = 1500,
 		## Subset data segment
 		segStart <- (length*(segment-1)) + start
 		segEnd <- segStart + length
+		# Add overlap
+		if (segment == 1){
+		  segStart.ol <- segStart
+		  segEnd.ol <- segEnd + ol
+		} else if (segment == segments){
+		  segStart.ol <- segStart - ol
+		  segEnd.ol <- segEnd
+		} else {
+		  segStart.ol <- segStart - ol
+		  segEnd.ol <- segEnd + ol
+		}
 		dataset <- subset(dataset_HTI,
-											seconds >=  + segStart &
-											seconds < segEnd)
+											seconds >=  + segStart.ol &
+											seconds < segEnd.ol)
 		dataset.H1 <- subset(dataset, Hydrophone == 1)
 		dataset.H2 <- subset(dataset, Hydrophone == 2)
 		dataset.H3 <- subset(dataset, Hydrophone == 3)
 		dataset.H4 <- subset(dataset, Hydrophone == 4)
 		
 		message('Segment: ', segment, ', Analysis Period: ',
-						round(segStart, digits = 1), '-',round(segEnd,digits = 1))
+						round(segStart.ol, digits = 1), '-',round(segEnd.ol,digits = 1))
 		
 		## Find unique pulse rate intervals
 		if(is.na(tag.freq)){
@@ -190,6 +208,11 @@ codAnalysis <- function(file, length = 120, segments = 0, c = 1500,
 			
 			yaps.output.temp <- data.frame(estimates.yaps.p$XYZ, estimates.yaps.p$top)
 			names(yaps.output.temp) <- c('x','y','z','top')
+			# remove overlap
+			yaps.output.temp <- subset(yaps.output.temp, 
+			                           top >= (min(yaps.output.temp$top) + (segStart - segStart.ol)),
+			                           top <= (max(yaps.output.temp$top) - (segEnd.ol - segEnd)))
+			
 			yaps.output.temp$DateTime <- (yaps.output.temp$top - start) +
 				as.POSIXct(attr(which = 'StartTime', x = dataset_HTI))
 			yaps.output.temp$segment <- segment
