@@ -210,7 +210,7 @@ codAnalysis <- function(file, length = 120, segments = 0, ol = 30, c = 1500,
 			names(yaps.output.temp) <- c('x','y','z','top')
 			# remove overlap
 			yaps.output.temp <- subset(yaps.output.temp, 
-			                           top >= (min(yaps.output.temp$top) + (segStart - segStart.ol)),
+			                           top >= (min(yaps.output.temp$top) + (segStart - segStart.ol)) &
 			                           top <= (max(yaps.output.temp$top) - (segEnd.ol - segEnd)))
 			
 			yaps.output.temp$DateTime <- (yaps.output.temp$top - start) +
