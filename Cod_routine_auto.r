@@ -20,6 +20,7 @@ codAnalysis <- function(file, length = 120, segments = 0, c = 1500,
 											 '_z',z,'_fs',filterStrength, '_',tag.freq,'hz.csv')
 	folderName <- paste0('P_',file.name,'_', length,'s_',timestamp)
 	
+	require(R.utils)	
 	mkdirs(folderName)
 		
 	# Read dataset, standard fs (sampling rate) of HTI system is: 12000/s (12 bit)
