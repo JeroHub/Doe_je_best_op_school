@@ -4,7 +4,7 @@
 #' @param file Name of RAT file to process
 #' @param length Time in seconds of each analysis segment.  Shorter segments allow for controling variable conditions over time, while longer sections will make it seasier to estimate the error distributions of the model.  Try to have at least 120 data points per segment.
 #' @param segments 0 will analyse until file end.  Otherwise, will analyse `segments` sections of `length` seconds.
-#' @param ol Absolute number of datapoints that overlap with two consecutive segments.
+#' @param ol Absolute number of seconds that overlaps with previous and next segment during the YAPS analysis. Thereafter removed from the output.
 #' @return
 #' @export
 #'
@@ -13,13 +13,11 @@ codAnalysis <- function(file, length = 120, segments = 0, ol = 30, c = 1500,
 												filterStrength = 0.1, z = 1.96, plot = T, tag.freq = NA){
 	require(toal)
 	
-	# file <- "AT17S013410100.RAT"
-	
 	file.name <- substr(file, 1, (nchar(file) - 4))
-	timestamp <- as.character(Sys.time(), format = '%y-%M-%d_%H:%M')
-	outputName <- paste0('R_',file.name,'_', length,'s_z',z,'_fs',filterStrength,
+	timestamp <- as.character(Sys.time(), format = '%y-%m-%d_%H-%M')
+	outputName <- paste0('R_',file.name,'_', length,'s_ol',ol,'_z',z,'_fs',filterStrength,
 											 '_',tag.freq,'hz_',timestamp,'.csv')
-	folderName <- paste0('P_',file.name,'_', length,'s_',timestamp)
+	folderName <- paste0('P_',file.name,'_', length,'s_ol',ol,'_',timestamp)
 	
 	require(R.utils)	
 	mkdirs(folderName)
@@ -29,15 +27,15 @@ codAnalysis <- function(file, length = 120, segments = 0, ol = 30, c = 1500,
 	head(dataset_HTI)
 	
 	# Check input for overlap variable
-	if (ol > (length/2)){
-	  ol <- floor(length/2)
-	  message('Warning: Entered overlap (ol) is to high, the maximum possible overlap will be used.')
+	if (ol > length){
+	  ol <- length
+	  message('Warning: Entered overlap (ol) is higher than the segment-length. The segment-length is now used as overlap-length.')
 	}
 	
 	## Loop variables
 	start <- min(dataset_HTI$seconds)
 	end <- max(dataset_HTI$seconds)
-	max.segments <- floor((end - start)/60)
+	max.segments <- floor((end - start)/length)
 	if (segments == 0){
 		segments <- max.segments
 	}else{
@@ -210,8 +208,8 @@ codAnalysis <- function(file, length = 120, segments = 0, ol = 30, c = 1500,
 			names(yaps.output.temp) <- c('x','y','z','top')
 			# remove overlap
 			yaps.output.temp <- subset(yaps.output.temp, 
-			                           top >= (min(yaps.output.temp$top) + (segStart - segStart.ol)) &
-			                           top <= (max(yaps.output.temp$top) - (segEnd.ol - segEnd)))
+			                           top >= (min(yaps.output.temp$top) + (segStart - segStart.ol - 1)) &
+			                           top <= (max(yaps.output.temp$top) - (segEnd.ol - segEnd - 1)))
 			
 			yaps.output.temp$DateTime <- (yaps.output.temp$top - start) +
 				as.POSIXct(attr(which = 'StartTime', x = dataset_HTI))

@@ -4,14 +4,20 @@
 ## Z-scores for filtering
 zs <- c(`95` = 1.960, `99` = 2.567, `99.5` = 2.807)
 
+# Install from github
+install.packages("curl")
+install.packages("devtools")
+require(devtools)
+install_github('RTbecard/toal', build_vignettes = F, force = T)
+
 ## Analysis
 source('Cod_routine_auto.r')
 #codAnalysis(file = 'AT17S013410100.RAT', length = 60, segments = 0, c = 1500, 
 #						filterStrength = 0.1, z = zs[3], tag.freq = 1.00005)
 #codAnalysis(file = 'AT17S013410100.RAT', length = 120, segments = 0, c = 1500, 
 #						filterStrength = 0.1, z = zs[3], tag.freq = 1.00005)
-#codAnalysis(file = 'AT17S013410100.RAT', length = 120, segments = 0, c = 1500, 
-#						filterStrength = 0.1, z = zs[2], tag.freq = 1.00005)
+codAnalysis(file = 'AT17S013410100.RAT', length = 120, segments = 0, c = 1500, 
+						filterStrength = 0.1, z = zs[2], tag.freq = 1.00005)
 
 ## Function for plotting results
 plotResults <- function(file, segments = NA){
