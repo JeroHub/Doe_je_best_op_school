@@ -9,12 +9,14 @@
 #'
 #' @examples
 codAnalysis <- function(file, length = 120, segments = 0, ol = 30, c = 1500,
-                        filterStrength = 0.1, z = 2.807, plot = T, tag.freq = NA){
+                        filterStrength = 0.1, z = 2.807, plot = T,
+												tag.freq = NA, reflection.rads = 0.0125){
   require(toal)
   
   file.name <- substr(file, 1, (nchar(file) - 4))
   timestamp <- as.character(Sys.time(), format = '%y-%m-%d_%H-%M')
-  outputName <- paste0('R_',file.name,'_', length,'s_ol',ol,'_z',z,'_fs',filterStrength,
+  outputName <- paste0('R_',file.name,'_', length,'s_ol',ol,'_z',z,'_r',
+  										 reflection.rads,'_fs',filterStrength,
                        '_',tag.freq,'hz_',timestamp,'.csv')
   folderName <- paste0('P_',file.name,'_', length,'s_ol',ol,'_',timestamp)
   
@@ -123,7 +125,7 @@ codAnalysis <- function(file, length = 120, segments = 0, ol = 30, c = 1500,
     
     dataset.periods.clean <- TagFreq.clean(dataset.periods, z = z, plot = F)
     
-    png(filename = 	paste0(folderName,'/','Clean_s',segment,'.png'),
+    png(filename = 	paste0(folderName,'/','Clean1_s',segment,'.png'),
         width = 920, height = 480)
     if(plot == T){
       require(ggplot2)
@@ -151,6 +153,7 @@ codAnalysis <- function(file, length = 120, segments = 0, ol = 30, c = 1500,
     dataset.periods <- subset(dataset.periods.clean, subset = remove == F)
     
     ### Loop all periods, and save first detection per hydrophone
+    ## Assume first detected point is true point (not reflection)
     dataset.YAPS_input <- NULL
     for (Period in min(dataset.periods$period):max(dataset.periods$period)) {
       dataset.YAPS_input.temp <- data.frame(
@@ -166,6 +169,36 @@ codAnalysis <- function(file, length = 120, segments = 0, ol = 30, c = 1500,
                                            dataset.periods$period == Period]))
       dataset.YAPS_input <- rbind(dataset.YAPS_input, dataset.YAPS_input.temp)
     }
+    
+    dataset.periods.clean <- TagFreq.reflections(dataset.periods,
+    																						 rads = reflection.rads,
+    																						 plot = F)
+    ## Remove cleaned points
+    dataset.periods <- subset(dataset.periods.clean, subset = remove == F)
+    
+    png(filename = 	paste0(folderName,'/','Clean2_s',segment,'.png'),
+    		width = 920, height = 480)
+    if(plot == T){
+    	require(ggplot2)
+    	print(
+    		ggplot(dataset.periods.clean) +
+    			geom_path(aes(x = Seconds, y = rads, group = factor(period)),
+    								alpha = 0.2) +
+    			geom_path(aes(x = Seconds, y = rads,
+    										group = factor(paste0(Hydrophone,Tag))),
+    								data = subset(dataset.periods.clean, subset = remove == F)) +
+    			geom_point(aes(x = Seconds, y = rads, fill = factor(Hydrophone),
+    										 color = remove), pch = 21) +
+    			theme_bw() + scale_fill_discrete(name = 'Hydrophone') +
+    			ylab('Relative Detection Time (Radians per period)') +
+    			xlab('Absolute Detection time (Seconds)') +
+    			geom_hline(yintercept = c(pi + filterStrength/2,
+    																pi - filterStrength/2),
+    								 linetype = 2) +
+    			scale_color_manual(values= c(`TRUE` = 'red', `FALSE` = 'black'))
+    	)
+    }
+    dev.off()
     
     ## START WITH POSITIONING USING YAPS!
     # Hydrophone positions        H1    H2    H3    H4
