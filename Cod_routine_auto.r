@@ -10,13 +10,13 @@
 #' @examples
 codAnalysis <- function(file, length = 120, segments = 0, ol = 30, c = 1500,
                         filterStrength = 0.1, z = 2.807, plot = T,
-												tag.freq = NA, reflection.rads = 0.0125){
+                        tag.freq = NA, reflection.rads = 0.0125){
   require(toal)
   
   file.name <- substr(file, 1, (nchar(file) - 4))
   timestamp <- as.character(Sys.time(), format = '%y-%m-%d_%H-%M')
   outputName <- paste0('R_',file.name,'_', length,'s_ol',ol,'_z',z,'_r',
-  										 reflection.rads,'_fs',filterStrength,
+                       reflection.rads,'_fs',filterStrength,
                        '_',tag.freq,'hz_',timestamp,'.csv')
   folderName <- paste0('P_',file.name,'_', length,'s_ol',ol,'_',timestamp)
   
@@ -36,7 +36,7 @@ codAnalysis <- function(file, length = 120, segments = 0, ol = 30, c = 1500,
   ## Loop variables
   start <- min(dataset_HTI$seconds)
   end <- max(dataset_HTI$seconds)
-  max.segments <- floor((end - start)/length)
+  max.segments <- floor((end - start - (2 * ol))/(length - (2 * ol)))
   if (segments == 0){
     segments <- max.segments
   }else{
@@ -61,7 +61,7 @@ codAnalysis <- function(file, length = 120, segments = 0, ol = 30, c = 1500,
     ## Subset data segment
     segStart <- ((length-(ol*2))*(segment-1)) + start
     segEnd <- segStart + length
-
+    
     dataset <- subset(dataset_HTI,
                       seconds >=  segStart &
                         seconds < segEnd)
@@ -171,32 +171,32 @@ codAnalysis <- function(file, length = 120, segments = 0, ol = 30, c = 1500,
     }
     
     dataset.periods.clean <- TagFreq.reflections(dataset.periods,
-    																						 rads = reflection.rads,
-    																						 plot = F)
+                                                 rads = reflection.rads,
+                                                 plot = F)
     ## Remove cleaned points
     dataset.periods <- subset(dataset.periods.clean, subset = remove == F)
     
     png(filename = 	paste0(folderName,'/','Clean2_s',segment,'.png'),
-    		width = 920, height = 480)
+        width = 920, height = 480)
     if(plot == T){
-    	require(ggplot2)
-    	print(
-    		ggplot(dataset.periods.clean) +
-    			geom_path(aes(x = Seconds, y = rads, group = factor(period)),
-    								alpha = 0.2) +
-    			geom_path(aes(x = Seconds, y = rads,
-    										group = factor(paste0(Hydrophone,Tag))),
-    								data = subset(dataset.periods.clean, subset = remove == F)) +
-    			geom_point(aes(x = Seconds, y = rads, fill = factor(Hydrophone),
-    										 color = remove), pch = 21) +
-    			theme_bw() + scale_fill_discrete(name = 'Hydrophone') +
-    			ylab('Relative Detection Time (Radians per period)') +
-    			xlab('Absolute Detection time (Seconds)') +
-    			geom_hline(yintercept = c(pi + filterStrength/2,
-    																pi - filterStrength/2),
-    								 linetype = 2) +
-    			scale_color_manual(values= c(`TRUE` = 'red', `FALSE` = 'black'))
-    	)
+      require(ggplot2)
+      print(
+        ggplot(dataset.periods.clean) +
+          geom_path(aes(x = Seconds, y = rads, group = factor(period)),
+                    alpha = 0.2) +
+          geom_path(aes(x = Seconds, y = rads,
+                        group = factor(paste0(Hydrophone,Tag))),
+                    data = subset(dataset.periods.clean, subset = remove == F)) +
+          geom_point(aes(x = Seconds, y = rads, fill = factor(Hydrophone),
+                         color = remove), pch = 21) +
+          theme_bw() + scale_fill_discrete(name = 'Hydrophone') +
+          ylab('Relative Detection Time (Radians per period)') +
+          xlab('Absolute Detection time (Seconds)') +
+          geom_hline(yintercept = c(pi + filterStrength/2,
+                                    pi - filterStrength/2),
+                     linetype = 2) +
+          scale_color_manual(values= c(`TRUE` = 'red', `FALSE` = 'black'))
+      )
     }
     dev.off()
     
