@@ -36,7 +36,7 @@ codAnalysis <- function(file, length = 120, segments = 0, ol = 30, c = 1500,
   ## Loop variables
   start <- min(dataset_HTI$seconds)
   end <- max(dataset_HTI$seconds)
-  max.segments <- floor((end - start - (2 * ol))/(length - (2 * ol)))
+  max.segments <- floor((end - start)/(length - (2 * ol)))
   if (segments == 0){
     segments <- max.segments
   }else{
